@@ -1,0 +1,11 @@
+// src/styles/BookingForm.scss
+.button-custom {
+    &.MuiButton-root {
+      background-color: #2e7d32;
+      color: white;
+      &:hover {
+        background-color: #1b5e20; // Darker shade of green
+        color: white;
+      }
+    }
+  }  

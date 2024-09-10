@@ -1,0 +1,28 @@
+/* src/styles/App.scss */
+
+/* Ensure the body and html take up the full viewport height */
+html, body {
+    height: 100%;
+    margin: 0;
+  }
+  
+  /* Create a wrapper for the main content */
+  .app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* Ensure main content takes up the remaining space */
+  .main-content {
+    flex: 1;
+  }
+  
+  /* Style for footer */
+  footer {
+    background-color: #2e7d32;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+  }
+  

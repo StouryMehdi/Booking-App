@@ -1,53 +1,45 @@
-// src/components/BookingList.jsx
-import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
-import '../styles/BookingList.scss'; // Import styles
+import React, { useState, useEffect } from 'react';
+import { Typography, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 
-const BookingList = () => {
+const BookingsList = () => {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    // Fetch bookings data from the JSON file
-    const fetchBookings = async () => {
-      try {
-        const response = await fetch('/data/bookings.json');
-        const data = await response.json();
-        setBookings(data);
-      } catch (error) {
-        console.error('Failed to fetch bookings:', error);
-      }
-    };
-
-    fetchBookings();
+    const storedBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+    setBookings(storedBookings); // Set the retrieved bookings to state
   }, []);
 
   return (
-    <TableContainer component={Paper}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Booking List
+    <div>
+      <Typography variant="h4" component="h2" gutterBottom>
+        Bookings List
       </Typography>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Time</TableCell>
-            <TableCell>Guests</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {bookings.map((booking, index) => (
-            <TableRow key={index}>
-              <TableCell>{booking.name}</TableCell>
-              <TableCell>{booking.date}</TableCell>
-              <TableCell>{booking.time}</TableCell>
-              <TableCell>{booking.guests}</TableCell>
+      {bookings.length === 0 ? (
+        <Typography>No bookings available</Typography>
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Time</TableCell>
+              <TableCell>Guests</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {bookings.map((booking, index) => (
+              <TableRow key={index}>
+                <TableCell>{booking.name}</TableCell>
+                <TableCell>{booking.date}</TableCell>
+                <TableCell>{booking.time}</TableCell>
+                <TableCell>{booking.guests}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
   );
 };
 
-export default BookingList;
+export default BookingsList;

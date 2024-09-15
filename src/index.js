@@ -1,14 +1,13 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.scss';
+import { createRoot } from 'react-dom/client';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import { BookingProvider } from './context/BookingContext'; // Adjust the path as necessary
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <BookingProvider>
+      <App />
+    </BookingProvider>
   </React.StrictMode>
 );
-
-reportWebVitals();

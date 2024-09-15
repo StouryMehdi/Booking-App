@@ -1,43 +1,40 @@
-// server.js
 const express = require('express');
+const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+
 const app = express();
 const port = 5000;
+const bookingsFilePath = path.join(__dirname, 'data', 'bookings.json');
 
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Serve the JSON file
+// Fetch reservations
 app.get('/api/bookings', (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'data', 'bookings.json');
-  fs.readFile(filePath, 'utf8', (err, data) => {
+  fs.readFile(bookingsFilePath, 'utf8', (err, data) => {
     if (err) {
-      return res.status(500).json({ message: 'Error reading data' });
+      return res.status(500).send('Error reading bookings file');
     }
     res.json(JSON.parse(data));
   });
 });
 
-// Update the JSON file
 app.post('/api/bookings', (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'data', 'bookings.json');
-  fs.readFile(filePath, 'utf8', (err, data) => {
+  fs.readFile(bookingsFilePath, 'utf8', (err, data) => {
     if (err) {
-      return res.status(500).json({ message: 'Error reading data' });
+      console.error('Error reading bookings file:', err);
+      return res.status(500).send('Error reading bookings file');
     }
 
     const bookings = JSON.parse(data);
     bookings.push(req.body);
 
-    fs.writeFile(filePath, JSON.stringify(bookings, null, 2), (err) => {
+    fs.writeFile(bookingsFilePath, JSON.stringify(bookings, null, 2), (err) => {
       if (err) {
-        return res.status(500).json({ message: 'Error saving data' });
+        console.error('Error writing to bookings file:', err);
+        return res.status(500).send('Error writing to bookings file');
       }
-      res.status(201).json(req.body);
+      res.status(201).send('Booking added');
     });
   });
-});
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
 });

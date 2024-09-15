@@ -1,4 +1,3 @@
-// src/components/BookingForm.jsx
 import React, { useState } from 'react';
 import { Button, TextField, Grid, Typography, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import '../styles/BookingForm.scss';
@@ -13,22 +12,32 @@ const BookingForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // Validate the form fields
+    if (!name || !date || !time || !guests) {
+      setMessage('Please fill in all fields.');
+      setOpen(true);
+      return;
+    }
+
     const booking = { name, date, time, guests };
-    
+
     try {
-      const response = await fetch('http://localhost:5000/data/bookings', {
+      const response = await fetch('http://localhost:5000/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(booking),
       });
 
+      const responseData = await response.text(); // Parse response as text
+
       if (response.ok) {
         setMessage('Booking successful!');
       } else {
-        setMessage('Failed to save the booking.');
+        setMessage(`Failed to save the booking. Status: ${response.status}, Message: ${responseData}`);
       }
     } catch (error) {
+      console.error('Error during booking submission:', error);
       setMessage('Failed to save the booking.');
     }
 

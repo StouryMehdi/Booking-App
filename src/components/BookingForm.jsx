@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Button, TextField, Grid, Typography, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Button, TextField, Grid, Typography, Snackbar, SnackbarContent } from '@mui/material';
+import { v4 as uuidv4 } from "uuid";
 import '../styles/BookingForm.scss';
 
 const BookingForm = () => {
@@ -9,6 +10,18 @@ const BookingForm = () => {
   const [guests, setGuests] = useState('');
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [alertType, setAlertType] = useState('success'); // Default alert type
+  const [bookingId, setBookingId] = useState(1); // State for booking ID
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Load the booking ID from local storage
+  useEffect(() => {
+    const storedId = localStorage.getItem('nextBookingId');
+    if (storedId) {
+      setBookingId(Number(storedId)); // Load the next ID from local storage
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,11 +29,18 @@ const BookingForm = () => {
     // Validate the form fields
     if (!name || !date || !time || !guests) {
       setMessage('Please fill in all fields.');
+      setAlertType('error'); // Set alert type to error
       setOpen(true);
       return;
     }
 
-    const booking = { name, date, time, guests };
+    const booking = {
+      uuid: uuidv4(),
+      name,
+      date,
+      time,
+      guests,
+    };
 
     try {
       const response = await fetch('http://localhost:5000/api/bookings', {
@@ -33,19 +53,34 @@ const BookingForm = () => {
 
       if (response.ok) {
         setMessage('Booking successful!');
+        setAlertType('success'); // Set alert type to success
+        
+        // Increment the booking ID for the next booking
+        const nextId = bookingId + 1;
+        setBookingId(nextId);
+        localStorage.setItem('nextBookingId', nextId); // Save next ID to local storage
       } else {
         setMessage(`Failed to save the booking. Status: ${response.status}, Message: ${responseData}`);
+        setAlertType('error'); // Set alert type to error
       }
     } catch (error) {
       console.error('Error during booking submission:', error);
       setMessage('Failed to save the booking.');
+      setAlertType('error'); // Set alert type to error
     }
 
-    setOpen(true); // Show dialog
+    setOpen(true); // Show Snackbar
   };
 
-  const handleClose = () => {
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
     setOpen(false);
+  };
+
+  const getSnackbarContentStyle = () => {
+    return alertType === 'success' ? { backgroundColor: '#4caf50' } : { backgroundColor: '#f44336' }; // Green for success, Red for error
   };
 
   return (
@@ -73,6 +108,7 @@ const BookingForm = () => {
               fullWidth
               required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: today }} // Set min date to today
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -103,17 +139,14 @@ const BookingForm = () => {
           </Grid>
         </Grid>
       </form>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Booking Status</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">{message}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+      {/* Snackbar for alert messages */}
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <SnackbarContent
+          style={getSnackbarContentStyle()}
+          message={message}
+        />
+      </Snackbar>
     </div>
   );
 };

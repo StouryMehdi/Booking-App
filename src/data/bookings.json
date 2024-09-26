@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "uuid": "150112b7-07c2-46eb-8272-e95551d41de7",
+    "name": "Alice Johnson",
+    "date": "2024-10-01",
+    "time": "18:00",
+    "guests": "4"
+  },
+  {
+    "id": 2,
+    "uuid": "3c1b4b38-88b1-4e8e-b0a1-e20b1c5cba5a",
+    "name": "Bob Smith",
+    "date": "2024-10-05",
+    "time": "20:00",
+    "guests": "2"
+  },
+  {
+    "id": 3,
+    "uuid": "5e50026e-2986-42d4-8bc6-1c8f8d163b84",
+    "name": "Charlie Brown",
+    "date": "2024-10-10",
+    "time": "19:30",
+    "guests": "3"
+  },
+  {
+    "id": 4,
+    "uuid": "a9fbc1d2-0e43-4c2e-b00e-4bfb07b5fcf7",
+    "name": "Diana Prince",
+    "date": "2024-10-15",
+    "time": "21:00",
+    "guests": "6"
+  },
+  {
+    "id": 5,
+    "uuid": "c24c1540-12ed-4a57-849e-43b83e20dc76",
+    "name": "Ethan Hunt",
+    "date": "2024-10-20",
+    "time": "17:00",
+    "guests": "5"
+  }
+]

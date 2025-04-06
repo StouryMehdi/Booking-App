@@ -1,150 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import { Button, TextField, Grid, Typography, Snackbar, SnackbarContent } from '@mui/material';
-import { v4 as uuidv4 } from "uuid";
-import '../styles/BookingForm.scss';
+import React, { useState } from "react";
+import { Button, TextField, Grid, Typography, Snackbar, SnackbarContent } from "@mui/material";
+import "../styles/BookingForm.scss";
 
 const BookingForm = () => {
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [guests, setGuests] = useState('');
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [alertType, setAlertType] = useState('success'); // Default alert type
-  const [bookingId, setBookingId] = useState(1); // State for booking ID
+  const [formData, setFormData] = useState({
+    name: "",
+    date: "",
+    time: "",
+    guests: ""
+  });
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    type: "success"
+  });
+  const [loading, setLoading] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/bookings";
 
-  // Load the booking ID from local storage
-  useEffect(() => {
-    const storedId = localStorage.getItem('nextBookingId');
-    if (storedId) {
-      setBookingId(Number(storedId)); // Load the next ID from local storage
-    }
-  }, []);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.date || !formData.time || !formData.guests) {
+      showNotification("Please fill in all fields", "error");
+      return;
+    }
 
-    // Validate the form fields
-    if (!name || !date || !time || !guests) {
-      setMessage('Please fill in all fields.');
-      setAlertType('error'); // Set alert type to error
-      setOpen(true);
+    const guestsNumber = Number(formData.guests);
+    if (isNaN(guestsNumber) || guestsNumber < 1 || guestsNumber > 20) {
+      showNotification("Number of guests must be between 1 and 20", "error");
+      return;
+    }
+
+    const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
+    if (selectedDateTime < new Date()) {
+      showNotification("Please choose a future date and time", "error");
       return;
     }
 
     const booking = {
-      uuid: uuidv4(),
-      name,
-      date,
-      time,
-      guests,
+      name: formData.name.trim(),
+      date: formData.date,
+      time: formData.time,
+      guests: guestsNumber,
     };
 
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(booking),
       });
 
-      const responseData = await response.text(); // Parse response as text
-
-      if (response.ok) {
-        setMessage('Booking successful!');
-        setAlertType('success'); // Set alert type to success
-        
-        // Increment the booking ID for the next booking
-        const nextId = bookingId + 1;
-        setBookingId(nextId);
-        localStorage.setItem('nextBookingId', nextId); // Save next ID to local storage
-      } else {
-        setMessage(`Failed to save the booking. Status: ${response.status}, Message: ${responseData}`);
-        setAlertType('error'); // Set alert type to error
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to save booking");
       }
+
+      showNotification("Booking successful!", "success");
+      setFormData({ name: "", date: "", time: "", guests: "" });
     } catch (error) {
-      console.error('Error during booking submission:', error);
-      setMessage('Failed to save the booking.');
-      setAlertType('error'); // Set alert type to error
+      showNotification(error.message || "Failed to save booking", "error");
+    } finally {
+      setLoading(false);
     }
-
-    setOpen(true); // Show Snackbar
   };
 
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpen(false);
+  const showNotification = (message, type) => {
+    setNotification({ open: true, message, type });
   };
 
-  const getSnackbarContentStyle = () => {
-    return alertType === 'success' ? { backgroundColor: '#4caf50' } : { backgroundColor: '#f44336' }; // Green for success, Red for error
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
   };
 
   return (
-    <div>
+    <div className="booking-form-container">
       <Typography variant="h4" component="h1" gutterBottom>
         Book a Table
       </Typography>
+      
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
+              name="name"
               label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formData.name}
+              onChange={handleChange}
               fullWidth
               required
+              inputProps={{ maxLength: 50 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
+              name="date"
               label="Date"
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={formData.date}
+              onChange={handleChange}
               fullWidth
               required
               InputLabelProps={{ shrink: true }}
-              inputProps={{ min: today }} // Set min date to today
+              inputProps={{ min: today }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
+              name="time"
               label="Time"
               type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
+              value={formData.time}
+              onChange={handleChange}
               fullWidth
               required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ step: 900 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
+              name="guests"
               label="Number of Guests"
               type="number"
-              value={guests}
-              onChange={(e) => setGuests(e.target.value)}
+              value={formData.guests}
+              onChange={handleChange}
               fullWidth
               required
+              inputProps={{ min: 1, max: 20 }}
             />
           </Grid>
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary" className="button-custom">
-              Book Table
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              size="large"
+              disabled={loading}
+              sx={{
+                marginTop: 2,
+                backgroundColor: "#1976d2",
+                color: "white",
+                padding: "12px 24px",
+                borderRadius: "8px",
+                "&:hover": { backgroundColor: "#1565c0" },
+              }}
+            >
+              {loading ? "Submitting..." : "Reserve Your Table"}
             </Button>
           </Grid>
         </Grid>
       </form>
 
-      {/* Snackbar for alert messages */}
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+      >
         <SnackbarContent
-          style={getSnackbarContentStyle()}
-          message={message}
+          message={notification.message}
+          style={{
+            backgroundColor: notification.type === "success" ? "#4caf50" : "#f44336",
+          }}
         />
       </Snackbar>
     </div>

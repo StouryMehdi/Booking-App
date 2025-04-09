@@ -1,32 +1,41 @@
 import React, { useState } from "react";
-import { Button, TextField, Grid, Typography, Snackbar, SnackbarContent } from "@mui/material";
-import "../styles/BookingForm.scss";
+import {
+  Button,
+  TextField,
+  Grid,
+  Typography,
+  Snackbar,
+  SnackbarContent,
+  Paper,
+  Box,
+} from "@mui/material";
 
 const BookingForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     date: "",
     time: "",
-    guests: ""
+    guests: "",
   });
   const [notification, setNotification] = useState({
     open: false,
     message: "",
-    type: "success"
+    type: "success",
   });
   const [loading, setLoading] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/bookings";
+  const API_URL =
+    process.env.REACT_APP_API_URL || "http://localhost:5000/api/bookings";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.date || !formData.time || !formData.guests) {
       showNotification("Please fill in all fields", "error");
       return;
@@ -78,25 +87,46 @@ const BookingForm = () => {
   };
 
   const handleCloseNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
+    setNotification((prev) => ({ ...prev, open: false }));
   };
 
   return (
-    <div className="booking-form-container">
-      <Typography variant="h4" component="h1" gutterBottom>
-        Book a Table
-      </Typography>
-      
+    <Paper
+      elevation={4}
+      sx={{
+        padding: 4,
+        borderRadius: 5,
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        maxWidth: 800,
+        margin: "0 auto",
+      }}
+    >
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h3"
+          align="center"
+          gutterBottom
+          sx={{
+            fontWeight: 700,
+            color: "primary.main",
+            mb: 4,
+          }}
+        >
+          Reserve Your Table
+        </Typography>
+      </Box>
+
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
               name="name"
-              label="Name"
+              label="Full Name"
               value={formData.name}
               onChange={handleChange}
               fullWidth
               required
+              variant="outlined"
               inputProps={{ maxLength: 50 }}
             />
           </Grid>
@@ -109,6 +139,7 @@ const BookingForm = () => {
               onChange={handleChange}
               fullWidth
               required
+              variant="outlined"
               InputLabelProps={{ shrink: true }}
               inputProps={{ min: today }}
             />
@@ -122,6 +153,7 @@ const BookingForm = () => {
               onChange={handleChange}
               fullWidth
               required
+              variant="outlined"
               InputLabelProps={{ shrink: true }}
               inputProps={{ step: 900 }}
             />
@@ -135,28 +167,31 @@ const BookingForm = () => {
               onChange={handleChange}
               fullWidth
               required
-              inputProps={{ min: 1, max: 20 }}
+              variant="outlined"
             />
           </Grid>
           <Grid item xs={12}>
+          </Grid>
             <Button
               type="submit"
               variant="contained"
               color="primary"
               size="large"
               disabled={loading}
+              fullWidth
               sx={{
-                marginTop: 2,
-                backgroundColor: "#1976d2",
-                color: "white",
-                padding: "12px 24px",
-                borderRadius: "8px",
-                "&:hover": { backgroundColor: "#1565c0" },
+                py: 1.5,
+                mt: 2,
+                fontSize: "1rem",
+                fontWeight: 600,
+                borderRadius: 2.5,
+                "&:hover": {
+                  backgroundColor: "primary.dark",
+                },
               }}
             >
               {loading ? "Submitting..." : "Reserve Your Table"}
             </Button>
-          </Grid>
         </Grid>
       </form>
 
@@ -164,15 +199,19 @@ const BookingForm = () => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <SnackbarContent
           message={notification.message}
-          style={{
-            backgroundColor: notification.type === "success" ? "#4caf50" : "#f44336",
+          sx={{
+            backgroundColor:
+              notification.type === "success" ? "#4caf50" : "#f44336",
+            fontWeight: 500,
+            borderRadius: 1,
           }}
         />
       </Snackbar>
-    </div>
+    </Paper>
   );
 };
 

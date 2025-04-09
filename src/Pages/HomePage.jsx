@@ -1,55 +1,43 @@
-import React from 'react';
-import BookingForm from '../components/BookingForm';
-import { Box, Typography } from '@mui/material';
-import BgImg from '../bg-rstaurant.jpg';
+import React from "react";
+import BookingForm from "../components/BookingForm";
+import { Box, Container } from "@mui/material";
+import BgImg from "../bg-rstaurant.jpg";
+
 const HomePage = () => {
   return (
-    <Box sx={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
-      <Box 
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        position: "relative",
+        py: 8,
+      }}
+    >
+      <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
+          right: 0,
+          bottom: 0,
           backgroundImage: `url(${BgImg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          // filter: 'blur(1px)',
-          zIndex: -1,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.55)", // Dark overlay
+          },
         }}
       />
-      <Box 
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          padding: 4,
-          position: 'relative',
-          zIndex: 1,
-          boxShadow: 3,
-        }}
-      >
-        <Typography variant="h4" align="center" gutterBottom>
-          Reserve Your Table
-        </Typography>
+      <Container maxWidth="md" sx={{ position: "relative", zIndex: 1 }}>
         <BookingForm />
-      </Box>
-      
-      <Box 
-        sx={{
-          height: '50%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 4,
-          backgroundColor: 'white',
-        }}
-      >
-      </Box>
+      </Container>
     </Box>
   );
 };

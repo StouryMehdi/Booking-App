@@ -4,7 +4,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useTheme, useMediaQuery } from '@mui/material';
-import '../styles/Header.scss';
 import logo from '../logo.png';
 
 const Header = () => {

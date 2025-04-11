@@ -6,7 +6,10 @@ import HomePage from './Pages/HomePage';
 import BookingsList from './components/BookingsList';
 import Alert from './components/Alert';
 import MenuPage from './components/MenuPage';
+import About from './components/About';
+import theme from './Pages/them';
 import './styles/App.scss';
+import { ThemeProvider } from '@emotion/react';
 
 const App = () => {
   const [alert, setAlert] = useState({ isOpen: false, message: '' });
@@ -22,6 +25,7 @@ const App = () => {
   };
 
   return (
+    <ThemeProvider theme={theme}>
     <Router>
       <div className="app-wrapper">
         <Header />
@@ -30,12 +34,14 @@ const App = () => {
             <Route path="/" element={<HomePage showAlert={showAlert} />} />
             <Route path="/booking-list" element={<BookingsList />} />
             <Route path="/menu" element={<MenuPage />} />
+            <Route path="/about" element={<About />} />
           </Routes>
         </main>
         <Footer />
         <Alert isOpen={alert.isOpen} onClose={closeAlert} message={alert.message} />
       </div>
     </Router>
+    </ThemeProvider>
   );
 };
 

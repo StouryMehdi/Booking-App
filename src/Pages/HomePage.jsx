@@ -1,5 +1,6 @@
 import React from "react";
 import BookingForm from "../components/BookingForm";
+// import Menu from "../components/MenuPage";
 import { Box, Container } from "@mui/material";
 import BgImg from "../bg-rstaurant.jpg";
 
@@ -37,6 +38,7 @@ const HomePage = () => {
       />
       <Container maxWidth="md" sx={{ position: "relative", zIndex: 1 }}>
         <BookingForm />
+        {/* <Menu /> */}
       </Container>
     </Box>
   );

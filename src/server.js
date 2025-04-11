@@ -79,7 +79,7 @@ app.get("/api/bookings", async (req, res) => {
 
 app.post("/api/bookings", validateBooking, async (req, res) => {
   try {
-    const { name, date, time, guests } = req.body;
+    const { name, date, time, guests, tel } = req.body;
     const bookings = await readBookings();
     
     const newBooking = {
@@ -87,7 +87,8 @@ app.post("/api/bookings", validateBooking, async (req, res) => {
       name,
       date,
       time,
-      guests: Number(guests)
+      guests: Number(guests),
+      tel
     };
 
     bookings.push(newBooking);
@@ -105,7 +106,7 @@ app.post("/api/bookings", validateBooking, async (req, res) => {
 app.put("/api/bookings/:id", validateBooking, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, date, time, guests } = req.body;
+    const { name, date, time, guests, tel } = req.body;
     const bookings = await readBookings();
     
     const index = bookings.findIndex(b => b.id === id);
@@ -118,7 +119,8 @@ app.put("/api/bookings/:id", validateBooking, async (req, res) => {
       name,
       date,
       time,
-      guests: Number(guests)
+      guests: Number(guests),
+      tel
     };
 
     bookings[index] = updatedBooking;

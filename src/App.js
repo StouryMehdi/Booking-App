@@ -4,7 +4,8 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './Pages/HomePage';
 import BookingsList from './components/BookingsList';
-import Alert from './components/Alert'; // Import the Alert component
+import Alert from './components/Alert';
+import MenuPage from './components/MenuPage';
 import './styles/App.scss';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<HomePage showAlert={showAlert} />} />
             <Route path="/booking-list" element={<BookingsList />} />
+            <Route path="/menu" element={<MenuPage />} />
           </Routes>
         </main>
         <Footer />

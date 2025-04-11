@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from "react";
 import {
-  Typography, Table, TableBody, TableCell, TableHead, TableRow,
-  Box, IconButton, Menu, MenuItem, Dialog, DialogActions,
-  DialogContent, DialogTitle, TextField, Button, Snackbar,
-  SnackbarContent, CircularProgress
+  Typography, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableRow,
+  Box, 
+  IconButton, 
+  Menu, 
+  MenuItem, 
+  Dialog, 
+  DialogActions,
+  DialogContent, 
+  DialogTitle, 
+  TextField, 
+  Button, 
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Container,
+  Pagination
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
@@ -17,13 +34,16 @@ const BookingsList = () => {
     name: "",
     date: "",
     time: "",
-    guests: ""
+    guests: "",
+    tel: ""
   });
   const [notification, setNotification] = useState({
     open: false,
     message: "",
     type: "success"
   });
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/bookings";
 
@@ -44,6 +64,18 @@ const BookingsList = () => {
     fetchBookings();
   }, [API_URL]);
 
+  // Pagination calculations
+  const pageCount = Math.ceil(bookings.length / itemsPerPage);
+  const currentItems = bookings.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleMenuClick = (event, booking) => {
     setAnchorEl(event.currentTarget);
     setSelectedBooking(booking);
@@ -60,7 +92,8 @@ const BookingsList = () => {
       name: selectedBooking.name,
       date: selectedBooking.date,
       time: selectedBooking.time,
-      guests: selectedBooking.guests.toString()
+      guests: selectedBooking.guests.toString(),
+      tel: selectedBooking.tel
     });
     setOpenDialog(true);
     handleMenuClose();
@@ -93,17 +126,18 @@ const BookingsList = () => {
     if (!selectedBooking?.id) return;
   
     const guestsNumber = Number(editForm.guests);
-    if (isNaN(guestsNumber) || guestsNumber < 1 || guestsNumber > 20) {
-      showNotification("Guests must be between 1-20", "error");
+    if (isNaN(guestsNumber)) {
+      showNotification("Please enter a valid number of guests", "error");
       return;
     }
-  
+
     try {
       const bookingData = {
         name: editForm.name.trim(),
         date: editForm.date,
         time: editForm.time,
-        guests: guestsNumber
+        guests: guestsNumber,
+        tel: editForm.tel
       };
   
       const response = await fetch(`${API_URL}/${selectedBooking.id}`, {
@@ -116,13 +150,12 @@ const BookingsList = () => {
         throw new Error("Failed to update booking");
       }
   
-      // Use the response from server instead of local data
       const updatedBooking = await response.json();
       
       setBookings(prevBookings => 
         prevBookings.map(booking => 
           booking.id === selectedBooking.id 
-            ? { ...booking, ...updatedBooking } // Merge existing with updates
+            ? { ...booking, ...updatedBooking }
             : booking
         )
       );
@@ -143,8 +176,8 @@ const BookingsList = () => {
   };
 
   return (
-    <div className="bookings-list-container">
-      <Typography variant="h4" component="h2" gutterBottom>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" component="h2" gutterBottom sx={{ color: 'primary.main' }}>
         Bookings List
       </Typography>
       
@@ -158,7 +191,16 @@ const BookingsList = () => {
         </Typography>
       ) : (
         <>
-          <Table>
+          <Table sx={{ 
+            '& .MuiTableCell-head': {
+              backgroundColor: 'primary.light',
+              color: 'primary.contrastText',
+              fontWeight: 600
+            },
+            '& .MuiTableRow-root:hover': {
+              backgroundColor: 'rgba(129, 199, 132, 0.1)'
+            }
+          }}>
             <TableHead>
               <TableRow>
                 <TableCell>N°</TableCell>
@@ -166,17 +208,19 @@ const BookingsList = () => {
                 <TableCell>Date</TableCell>
                 <TableCell>Time</TableCell>
                 <TableCell>Guests</TableCell>
+                <TableCell>Phone</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {bookings.map((booking, index) => (
+              {currentItems.map((booking, index) => (
                 <TableRow key={booking.id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{(page - 1) * itemsPerPage + index + 1}</TableCell>
                   <TableCell>{booking.name}</TableCell>
                   <TableCell>{booking.date}</TableCell>
                   <TableCell>{booking.time}</TableCell>
                   <TableCell>{booking.guests}</TableCell>
+                  <TableCell>{booking.tel}</TableCell>
                   <TableCell>
                     <IconButton onClick={(e) => handleMenuClick(e, booking)}>
                       <MoreVertIcon />
@@ -186,6 +230,25 @@ const BookingsList = () => {
               ))}
             </TableBody>
           </Table>
+
+          {pageCount > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <Pagination
+                count={pageCount}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    '&.Mui-selected': {
+                      fontWeight: 'bold'
+                    }
+                  }
+                }}
+              />
+            </Box>
+          )}
 
           <Menu
             anchorEl={anchorEl}
@@ -248,6 +311,15 @@ const BookingsList = () => {
             required
             inputProps={{ min: 1, max: 20 }}
           />
+          <TextField
+            name="tel"
+            label="Phone Number"
+            value={editForm.tel}
+            onChange={(e) => setEditForm({...editForm, tel: e.target.value})}
+            fullWidth
+            margin="normal"
+            required
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
@@ -257,7 +329,8 @@ const BookingsList = () => {
               !editForm.name ||
               !editForm.date ||
               !editForm.time ||
-              !editForm.guests
+              !editForm.guests ||
+              !editForm.tel
             }
             variant="contained"
             color="primary"
@@ -273,14 +346,15 @@ const BookingsList = () => {
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <SnackbarContent
-          message={notification.message}
-          style={{
-            backgroundColor: notification.type === "success" ? "#4caf50" : "#f44336",
-          }}
-        />
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
       </Snackbar>
-    </div>
+    </Container>
   );
 };
 

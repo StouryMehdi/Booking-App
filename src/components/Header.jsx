@@ -24,6 +24,9 @@ const Header = () => {
       <ListItem button component={Link} to="/booking-list" onClick={toggleDrawer(false)}>
         <ListItemText primary="Reservations" />
       </ListItem>
+      <ListItem button component={Link} to="/menu" onClick={toggleDrawer(false)}>
+        <ListItemText primary="Menu" />
+      </ListItem>
       <ListItem button component={Link} to="/about" onClick={toggleDrawer(false)}>
         <ListItemText primary="About" />
       </ListItem>
@@ -31,10 +34,20 @@ const Header = () => {
   );
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: '#2e7d32' }}>
+    <AppBar position="static" sx={{ 
+      backgroundColor: 'primary.main'
+    }}>
       <Toolbar>
-        <Button component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', color: 'inherit', textDecoration: 'none' }}>
-          <img src={logo} alt="Little Lemon Logo" style={{ height: 40, marginRight: 10 }} />
+        <Button component={Link} to="/" sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          color: 'inherit', 
+          textDecoration: 'none',
+          '&:hover': {
+            backgroundColor: 'rgba(255,255,255,0.1)'
+          }
+        }}>
+          <img src={logo} alt="Restaurant Logo" style={{ height: 40, marginRight: 10 }} />
           <Typography variant="h6" component="div">
             Little Lemon
           </Typography>
@@ -60,13 +73,52 @@ const Header = () => {
           </>
         ) : (
           <Box sx={{ display: 'flex', gap: 2, ml: 'auto' }}>
-            <Button color="inherit" component={Link} to="/">
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)'
+                }
+              }}
+            >
               Home
             </Button>
-            <Button color="inherit" component={Link} to="/booking-list">
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/booking-list"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)'
+                }
+              }}
+            >
               Reservations
             </Button>
-            <Button color="inherit" component={Link} to="/about">
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/Menu"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)'
+                }
+              }}
+            >
+              Menu
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/about"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)'
+                }
+              }}
+            >
               About
             </Button>
           </Box>

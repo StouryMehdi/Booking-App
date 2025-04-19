@@ -90,18 +90,9 @@ const MenuPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography 
-        variant="h4" 
-        component="h2" 
-        gutterBottom 
-        sx={{ 
-          color: 'primary.main',
-          fontWeight: 600,
-          mb: 4
-        }}
-      >
-        Our Menu
-      </Typography>
+      <Typography variant="h4" component="h2" gutterBottom sx={{ color: 'primary.main' }}>
+              Our Menu
+            </Typography>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>

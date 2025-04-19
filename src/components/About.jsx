@@ -82,6 +82,7 @@ const AboutPage = () => {
             variant="contained"
             color="secondary"
             size="large"
+            href="/menu"
             sx={{
               mt: 2,
               px: 4,
@@ -144,114 +145,118 @@ const AboutPage = () => {
         <Divider sx={{ my: 6, borderColor: theme.palette.primary.light }} />
 
         {/* Features Section */}
-        <Box
+<Box sx={{ 
+  mb: 8,
+  px: { xs: 2, sm: 3 }
+}}>
+  <Typography
+    variant="h3"
+    component="h2"
+    gutterBottom
+    sx={{
+      color: theme.palette.primary.dark,
+      mb: 6,
+      textAlign: "center",
+      fontWeight: 600,
+      position: "relative",
+      "&:after": {
+        content: '""',
+        display: "block",
+        width: "80px",
+        height: "4px",
+        backgroundColor: theme.palette.secondary.main,
+        margin: "20px auto 30px", // Increased bottom margin
+        borderRadius: "2px",
+      },
+    }}
+  >
+    What Makes Us Special
+  </Typography>
+
+  <Grid
+    container
+    spacing={{ xs: 4, md: 6 }} // Consistent spacing
+    sx={{
+      justifyContent: "center", // Center the grid items
+      alignItems: "stretch", // Make cards equal height
+    }}
+  >
+    {features.map((feature, index) => (
+      <Grid
+        item
+        xs={12}
+        sm={6}
+        md={4}
+        key={index}
+        sx={{
+          display: "flex", // Important for equal height
+          minWidth: { sm: "280px" }, // Minimum card width
+        }}
+      >
+        <Paper
+          elevation={3}
           sx={{
-            mb: 8,
-            px: { xs: 2, sm: 3 }, // Add horizontal padding on mobile/tablet
+            p: 4,
+            width: "320px",
+            height:"380px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            borderRadius: 3,
+            transition: "all 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-5px)",
+              boxShadow: 6,
+              borderTop: `4px solid ${theme.palette.secondary.main}`
+            },
           }}
         >
-          <Typography
-            variant="h3"
-            component="h2"
-            gutterBottom
+          <Avatar
             sx={{
-              color: theme.palette.primary.dark,
-              mb: 6,
-              textAlign: "center",
-              fontWeight: 600,
-              position: "relative",
-              "&:after": {
-                content: '""',
-                display: "block",
-                width: "80px",
-                height: "4px",
-                backgroundColor: theme.palette.secondary.main,
-                margin: "16px auto 0",
-                borderRadius: "2px",
+              bgcolor: theme.palette.secondary.main,
+              width: 80,
+              height: 80,
+              mb: 3,
+              "& .MuiSvgIcon-root": {
+                fontSize: "2.5rem",
               },
             }}
           >
-            What Makes Us Special
-          </Typography>
-
-          <Grid
-            container
-            spacing={{ xs: 3, sm: 4, md: 6 }} // Responsive spacing
+            {feature.icon}
+          </Avatar>
+          <Typography
+            variant="h5"
+            component="h3"
+            gutterBottom
             sx={{
-              // Add negative margin to compensate for grid spacing
-              marginTop: { xs: -3, sm: -4, md: -6 },
-              marginBottom: { xs: 3, sm: 4, md: 6 },
+              color: theme.palette.primary.dark,
+              fontWeight: 700,
+              mb: 2,
+              fontSize: "1.4rem",
             }}
           >
-            {features.map((feature, index) => (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
-                key={index}
-                sx={{
-                  // Add individual item padding
-                  padding: { xs: 3, sm: 4, md: 6 },
-                }}
-              >
-                <Paper
-                  elevation={2}
-                  sx={{
-                    p: 3,
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    borderRadius: 3,
-                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-8px)",
-                      boxShadow: theme.shadows[6],
-                    },
-                  }}
-                >
-                  {/* Rest of your card content remains the same */}
-                  <Avatar
-                    sx={{
-                      bgcolor: theme.palette.secondary.main,
-                      width: 80,
-                      height: 80,
-                      mb: 3,
-                      "& .MuiSvgIcon-root": {
-                        fontSize: "2.5rem",
-                      },
-                    }}
-                  >
-                    {feature.icon}
-                  </Avatar>
-                  <Typography
-                    variant="h5"
-                    component="h3"
-                    gutterBottom
-                    sx={{
-                      color: theme.palette.primary.dark,
-                      fontWeight: 600,
-                      mb: 2,
-                    }}
-                  >
-                    {feature.title}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "text.secondary",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {feature.description}
-                  </Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+            {feature.title}
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: "text.secondary",
+              lineHeight: 1.6,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: "4", // Limit to 4 lines
+              WebkitBoxOrient: "vertical",
+            }}
+          >
+            {feature.description}
+          </Typography>
+        </Paper>
+      </Grid>
+    ))}
+  </Grid>
+</Box>
 
         {/* Team Section */}
         <Box sx={{ mb: 6 }}>

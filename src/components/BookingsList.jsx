@@ -1,30 +1,32 @@
 import React, { useState, useEffect } from "react";
 import {
-  Typography, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
   TableRow,
-  Box, 
-  IconButton, 
-  Menu, 
-  MenuItem, 
-  Dialog, 
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Dialog,
   DialogActions,
-  DialogContent, 
-  DialogTitle, 
-  TextField, 
-  Button, 
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Button,
   Snackbar,
   Alert,
   CircularProgress,
   Container,
-  Pagination
+  Pagination,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useTheme } from '@mui/material/styles';
 
 const BookingsList = () => {
+  const theme = useTheme();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -35,17 +37,18 @@ const BookingsList = () => {
     date: "",
     time: "",
     guests: "",
-    tel: ""
+    tel: "",
   });
   const [notification, setNotification] = useState({
     open: false,
     message: "",
-    type: "success"
+    type: "success",
   });
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
 
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/bookings";
+  const API_URL =
+    process.env.REACT_APP_API_URL || "http://localhost:5000/api/bookings";
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -73,7 +76,7 @@ const BookingsList = () => {
 
   const handlePageChange = (event, value) => {
     setPage(value);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleMenuClick = (event, booking) => {
@@ -87,13 +90,13 @@ const BookingsList = () => {
 
   const handleEditClick = () => {
     if (!selectedBooking) return;
-    
+
     setEditForm({
       name: selectedBooking.name,
       date: selectedBooking.date,
       time: selectedBooking.time,
       guests: selectedBooking.guests.toString(),
-      tel: selectedBooking.tel
+      tel: selectedBooking.tel,
     });
     setOpenDialog(true);
     handleMenuClose();
@@ -107,14 +110,14 @@ const BookingsList = () => {
 
     try {
       const response = await fetch(`${API_URL}/${selectedBooking.id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (!response.ok) {
         throw new Error("Failed to delete booking");
       }
 
-      setBookings(bookings.filter(b => b.id !== selectedBooking.id));
+      setBookings(bookings.filter((b) => b.id !== selectedBooking.id));
       showNotification("Booking deleted successfully", "success");
     } catch (error) {
       showNotification(error.message, "error");
@@ -124,7 +127,7 @@ const BookingsList = () => {
 
   const handleUpdate = async () => {
     if (!selectedBooking?.id) return;
-  
+
     const guestsNumber = Number(editForm.guests);
     if (isNaN(guestsNumber)) {
       showNotification("Please enter a valid number of guests", "error");
@@ -137,29 +140,29 @@ const BookingsList = () => {
         date: editForm.date,
         time: editForm.time,
         guests: guestsNumber,
-        tel: editForm.tel
+        tel: editForm.tel,
       };
-  
+
       const response = await fetch(`${API_URL}/${selectedBooking.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData)
+        body: JSON.stringify(bookingData),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to update booking");
       }
-  
+
       const updatedBooking = await response.json();
-      
-      setBookings(prevBookings => 
-        prevBookings.map(booking => 
-          booking.id === selectedBooking.id 
+
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking.id === selectedBooking.id
             ? { ...booking, ...updatedBooking }
             : booking
         )
       );
-      
+
       setOpenDialog(false);
       showNotification("Booking updated successfully", "success");
     } catch (error) {
@@ -172,17 +175,22 @@ const BookingsList = () => {
   };
 
   const handleCloseNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
+    setNotification((prev) => ({ ...prev, open: false }));
   };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h2" gutterBottom sx={{ color: 'primary.main' }}>
+      <Typography
+        variant="h4"
+        component="h2"
+        gutterBottom
+        sx={{ color: "primary.main" }}
+      >
         Bookings List
       </Typography>
-      
+
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
         </Box>
       ) : bookings.length === 0 ? (
@@ -191,16 +199,18 @@ const BookingsList = () => {
         </Typography>
       ) : (
         <>
-          <Table sx={{ 
-            '& .MuiTableCell-head': {
-              backgroundColor: 'primary.light',
-              color: 'primary.contrastText',
-              fontWeight: 600
-            },
-            '& .MuiTableRow-root:hover': {
-              backgroundColor: 'rgba(129, 199, 132, 0.1)'
-            }
-          }}>
+          <Table
+            sx={{
+              "& .MuiTableCell-head": {
+                backgroundColor: "primary.light",
+                color: "primary.contrastText",
+                fontWeight: 600,
+              },
+              "& .MuiTableRow-root:hover": {
+                backgroundColor: "rgba(129, 199, 132, 0.1)",
+              },
+            }}
+          >
             <TableHead>
               <TableRow>
                 <TableCell>N°</TableCell>
@@ -220,7 +230,25 @@ const BookingsList = () => {
                   <TableCell>{booking.date}</TableCell>
                   <TableCell>{booking.time}</TableCell>
                   <TableCell>{booking.guests}</TableCell>
-                  <TableCell>{booking.tel}</TableCell>
+                  <TableCell>
+                    <Box
+                      component="a"
+                      href={`tel:${booking.tel.replace(/[^\d+]/g, "")}`}
+                      sx={{
+                        color: "inherit",
+                        textDecoration: "none",
+                        display: "block",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          color: theme.palette.primary.main,
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      {booking.tel}
+                    </Box>
+                  </TableCell>
                   <TableCell>
                     <IconButton onClick={(e) => handleMenuClick(e, booking)}>
                       <MoreVertIcon />
@@ -232,7 +260,7 @@ const BookingsList = () => {
           </Table>
 
           {pageCount > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
               <Pagination
                 count={pageCount}
                 page={page}
@@ -240,11 +268,11 @@ const BookingsList = () => {
                 color="primary"
                 size="large"
                 sx={{
-                  '& .MuiPaginationItem-root': {
-                    '&.Mui-selected': {
-                      fontWeight: 'bold'
-                    }
-                  }
+                  "& .MuiPaginationItem-root": {
+                    "&.Mui-selected": {
+                      fontWeight: "bold",
+                    },
+                  },
                 }}
               />
             </Box>
@@ -273,7 +301,7 @@ const BookingsList = () => {
             name="name"
             label="Name"
             value={editForm.name}
-            onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
             fullWidth
             margin="normal"
             required
@@ -283,7 +311,7 @@ const BookingsList = () => {
             label="Date"
             type="date"
             value={editForm.date}
-            onChange={(e) => setEditForm({...editForm, date: e.target.value})}
+            onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
             fullWidth
             margin="normal"
             required
@@ -294,7 +322,7 @@ const BookingsList = () => {
             label="Time"
             type="time"
             value={editForm.time}
-            onChange={(e) => setEditForm({...editForm, time: e.target.value})}
+            onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
             fullWidth
             margin="normal"
             required
@@ -305,7 +333,9 @@ const BookingsList = () => {
             label="Number of Guests"
             type="number"
             value={editForm.guests}
-            onChange={(e) => setEditForm({...editForm, guests: e.target.value})}
+            onChange={(e) =>
+              setEditForm({ ...editForm, guests: e.target.value })
+            }
             fullWidth
             margin="normal"
             required
@@ -315,7 +345,7 @@ const BookingsList = () => {
             name="tel"
             label="Phone Number"
             value={editForm.tel}
-            onChange={(e) => setEditForm({...editForm, tel: e.target.value})}
+            onChange={(e) => setEditForm({ ...editForm, tel: e.target.value })}
             fullWidth
             margin="normal"
             required
@@ -344,12 +374,12 @@ const BookingsList = () => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseNotification}
           severity={notification.type}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {notification.message}
         </Alert>

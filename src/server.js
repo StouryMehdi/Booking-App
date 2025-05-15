@@ -3,16 +3,64 @@ const fs = require("fs").promises;
 const path = require("path");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const crypto = require("crypto");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Environment variable validation
+if (!process.env.ALLOWED_ORIGIN && process.env.NODE_ENV === 'production') {
+  console.error('FATAL ERROR: ALLOWED_ORIGIN is not set in production');
+  process.exit(1);
+}
+
+// Security middleware
+app.use(helmet());
+app.use(xss());
+app.use(mongoSanitize());
+
+// Rate limiting
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+//   message: "Too many requests from this IP, please try again later"
+// });
+// app.use(limiter);
+
+// CORS configuration
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || "*"
+  origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000",
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+
+// Body parser with size limit
+app.use(express.json({ limit: '10kb' }));
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
+
+// HTTPS redirection in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+    } else {
+      next();
+    }
+  });
+}
 
 // Path to JSON file
 const bookingsFilePath = path.join(__dirname, "data", "bookings.json");
@@ -28,6 +76,7 @@ const initializeData = async () => {
     }
   } catch (err) {
     console.error("Initialization error:", err);
+    process.exit(1); // Exit if we can't initialize data storage
   }
 };
 
@@ -35,7 +84,13 @@ const initializeData = async () => {
 const readBookings = async () => {
   try {
     const data = await fs.readFile(bookingsFilePath, "utf8");
-    return JSON.parse(data);
+    // Add timeout to prevent blocking
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('File read timeout')), 5000);
+    });
+    
+    const dataPromise = JSON.parse(data);
+    return await Promise.race([dataPromise, timeoutPromise]);
   } catch (err) {
     console.error("Error reading bookings:", err);
     throw err;
@@ -53,15 +108,37 @@ const writeBookings = async (bookings) => {
 
 // Validation middleware
 const validateBooking = (req, res, next) => {
-  const { name, date, time, guests } = req.body;
+  const { name, date, time, guests, tel } = req.body;
   
+  // Check required fields
   if (!name || !date || !time || !guests) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
+  // Validate name
+  if (typeof name !== 'string' || name.length > 100) {
+    return res.status(400).json({ error: "Invalid name format" });
+  }
+
+  // Validate date format (YYYY-MM-DD)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: "Invalid date format" });
+  }
+
+  // Validate time format (HH:MM)
+  if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
+    return res.status(400).json({ error: "Invalid time format" });
+  }
+
+  // Validate guests number
   const guestsNumber = Number(guests);
-  if (isNaN(guestsNumber) || guestsNumber < 1) {
-    return res.status(400).json({ error: "Invalid guests number" });
+  if (isNaN(guestsNumber) || guestsNumber < 1 || guestsNumber > 20) {
+    return res.status(400).json({ error: "Invalid guests number (1-20)" });
+  }
+
+  // Optional phone number validation
+  if (tel && !/^[\d\s\+-]{6,20}$/.test(tel)) {
+    return res.status(400).json({ error: "Invalid phone number format" });
   }
 
   next();
@@ -84,11 +161,11 @@ app.post("/api/bookings", validateBooking, async (req, res) => {
     
     const newBooking = {
       id: uuidv4(),
-      name,
+      name: name.trim(),
       date,
       time,
       guests: Number(guests),
-      tel
+      tel: tel ? tel.trim() : undefined
     };
 
     bookings.push(newBooking);
@@ -116,11 +193,11 @@ app.put("/api/bookings/:id", validateBooking, async (req, res) => {
 
     const updatedBooking = {
       ...bookings[index],
-      name,
+      name: name.trim(),
       date,
       time,
       guests: Number(guests),
-      tel
+      tel: tel ? tel.trim() : undefined
     };
 
     bookings[index] = updatedBooking;
@@ -155,12 +232,19 @@ app.delete("/api/bookings/:id", async (req, res) => {
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+  
+  // Don't send full error details in production
+  const errorResponse = process.env.NODE_ENV === 'development' ? 
+    { error: err.message, stack: err.stack } : 
+    { error: 'Internal Server Error' };
+  
+  res.status(500).json(errorResponse);
 });
 
 // Start server
 initializeData().then(() => {
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Secure server running on http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 });

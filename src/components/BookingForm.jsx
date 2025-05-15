@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Button,
   TextField,
@@ -16,6 +16,15 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import countries from "../data/countries.json";
+
+// Sanitize input function
+const sanitizeInput = (input) => {
+  return input
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+};
 
 const BookingForm = () => {
   const theme = useTheme();
@@ -51,12 +60,13 @@ const BookingForm = () => {
     ? formData.tel.substring(selectedCountry.dialCode.length).trim()
     : formData.tel;
 
-  const handleChange = (e) => {
+  // Memoized handler for better performance
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: sanitizeInput(value) }));
+  }, []);
 
-  const handleCountryChange = (e) => {
+  const handleCountryChange = useCallback((e) => {
     const countryCode = e.target.value;
     const country = countries.find((c) => c.code === countryCode);
 
@@ -67,9 +77,9 @@ const BookingForm = () => {
       countryCode,
       tel: country.dialCode + (phoneNumber ? " " + phoneNumber : ""),
     }));
-  };
+  }, [displayPhoneNumber]);
 
-  const handlePhoneChange = (e) => {
+  const handlePhoneChange = useCallback((e) => {
     const value = e.target.value;
     
     // Allow only numbers and spaces
@@ -84,55 +94,53 @@ const BookingForm = () => {
       ...prev,
       tel: selectedCountry.dialCode + (value ? " " + value : ""),
     }));
-  };
+  }, [selectedCountry.dialCode]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
-    // Validation
-    if (
-      !formData.name ||
-      !formData.date ||
-      !formData.time ||
-      !formData.guests ||
-      !formData.tel
-    ) {
-      showNotification("Please fill in all required fields", "error");
-      return;
-    }
-
-    if (!formData.tel.startsWith(selectedCountry.dialCode)) {
-      showNotification(
-        `Phone number must start with ${selectedCountry.dialCode}`,
-        "error"
-      );
-      return;
-    }
-
-    const phoneDigits = formData.tel.replace(/\D/g, "").substring(selectedCountry.dialCode.replace(/\D/g, "").length);
-    if (phoneDigits.length < 8 || phoneDigits.length > 9) {
-      showNotification("Phone number must be 8-9 digits", "error");
-      return;
-    }
-
-    const guestsNumber = Number(formData.guests);
-    if (isNaN(guestsNumber) || guestsNumber < 1 || guestsNumber > 20) {
-      showNotification("Number of guests must be between 1 and 20", "error");
-      return;
-    }
-
-    const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
-    if (selectedDateTime < new Date()) {
-      showNotification("Please choose a future date and time", "error");
-      return;
-    }
-
-    // Submit data
-    setLoading(true);
+    // Enhanced validation
     try {
+      if (
+        !formData.name ||
+        !formData.date ||
+        !formData.time ||
+        !formData.guests ||
+        !formData.tel
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      if (!formData.tel.startsWith(selectedCountry.dialCode)) {
+        throw new Error(`Phone number must start with ${selectedCountry.dialCode}`);
+      }
+
+      const phoneDigits = formData.tel.replace(/\D/g, "").substring(selectedCountry.dialCode.replace(/\D/g, "").length);
+      if (phoneDigits.length < 8 || phoneDigits.length > 9) {
+        throw new Error("Phone number must be 8-9 digits");
+      }
+
+      const guestsNumber = Number(formData.guests);
+      if (isNaN(guestsNumber)) {
+        throw new Error("Invalid number of guests");
+      }
+      if (guestsNumber < 1 || guestsNumber > 20) {
+        throw new Error("Number of guests must be between 1 and 20");
+      }
+
+      const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
+      if (selectedDateTime < new Date()) {
+        throw new Error("Please choose a future date and time");
+      }
+
+      // Submit data (without CSRF token)
+      setLoading(true);
+      
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           name: formData.name.trim(),
           date: formData.date,
@@ -143,7 +151,10 @@ const BookingForm = () => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to save booking");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save booking");
+      }
 
       showNotification(
         "Booking successful! We'll contact you shortly.",
@@ -155,15 +166,15 @@ const BookingForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, selectedCountry.dialCode, API_URL]);
 
-  const showNotification = (message, type) => {
+  const showNotification = useCallback((message, type) => {
     setNotification({ open: true, message, type });
-  };
+  }, []);
 
-  const handleCloseNotification = () => {
+  const handleCloseNotification = useCallback(() => {
     setNotification((prev) => ({ ...prev, open: false }));
-  };
+  }, []);
 
   return (
     <Paper
@@ -193,8 +204,8 @@ const BookingForm = () => {
           Fill in your details to book a table at our restaurant
         </Typography>
       </Box>
-
-      <form onSubmit={handleSubmit}>
+      
+      <form onSubmit={handleSubmit} noValidate>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
             <TextField
@@ -206,7 +217,11 @@ const BookingForm = () => {
               required
               variant="outlined"
               size={isMobile ? "small" : "medium"}
-              inputProps={{ maxLength: 50 }}
+              inputProps={{ 
+                maxLength: 50,
+                pattern: "^[a-zA-ZÀ-ÿ\\s'-]+$",
+                title: "Please enter a valid name (letters, spaces, hyphens, and apostrophes only)"
+              }}
             />
           </Grid>
 
@@ -222,7 +237,10 @@ const BookingForm = () => {
               variant="outlined"
               size={isMobile ? "small" : "medium"}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ min: today }}
+              inputProps={{ 
+                min: today,
+                "data-testid": "date-input"
+              }}
             />
           </Grid>
 
@@ -238,7 +256,10 @@ const BookingForm = () => {
               variant="outlined"
               size={isMobile ? "small" : "medium"}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ step: 900 }}
+              inputProps={{ 
+                step: 900,
+                "data-testid": "time-input"
+              }}
             />
           </Grid>
 
@@ -253,11 +274,14 @@ const BookingForm = () => {
               required
               variant="outlined"
               size={isMobile ? "small" : "medium"}
-              inputProps={{ min: 1, max: 20 }}
+              inputProps={{ 
+                min: 1, 
+                max: 20,
+                "data-testid": "guests-input"
+              }}
             />
           </Grid>
 
-          {/* Row 3: Phone Number (full width) */}
           <Grid item xs={12}>
             <TextField
               name="tel"
@@ -355,39 +379,42 @@ const BookingForm = () => {
               inputProps={{
                 pattern: "^[\\d\\s]*$",
                 title: "Please enter only numbers",
+                "data-testid": "phone-input"
               }}
             />
           </Grid>
 
-          {/* Row 4: Submit Button (centered) */}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              size={isMobile ? "medium" : "large"}
-              disabled={loading}
-              sx={{
-                py: isMobile ? 1 : 1.5,
-                px: 4,
-                fontSize: "1rem",
-                fontWeight: 600,
-                borderRadius: 2,
-                textTransform: "none",
-                boxShadow: "none",
-                minWidth: 200,
-                "&:hover": {
-                  backgroundColor: theme.palette.primary.dark,
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                size={isMobile ? "medium" : "large"}
+                disabled={loading}
+                sx={{
+                  py: isMobile ? 1 : 1.5,
+                  px: 4,
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  textTransform: "none",
                   boxShadow: "none",
-                },
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Reserve Your Table"
-              )}
-            </Button>
-
+                  minWidth: 200,
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.dark,
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Reserve Your Table"
+                )}
+              </Button>
+            </Box>
+          </Grid>
         </Grid>
       </form>
 

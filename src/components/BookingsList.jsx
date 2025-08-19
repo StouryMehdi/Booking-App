@@ -62,6 +62,7 @@ const BookingsList = () => {
         showNotification(error.message, "error");
       } finally {
         setLoading(false);
+        console.log(setLoading)
       }
     };
     fetchBookings();
@@ -74,7 +75,7 @@ const BookingsList = () => {
     page * itemsPerPage
   );
 
-  const handlePageChange = (event, value) => {
+  const handlePageChange = (value) => {
     setPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
